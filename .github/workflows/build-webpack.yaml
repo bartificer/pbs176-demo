@@ -1,4 +1,4 @@
-name: Build with Webpack
+name: Build with Webpack and Publish to GitHub Pages
 
 on:
   push:
@@ -6,13 +6,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     permissions:
       contents: read
 
+    runs-on: ubuntu-latest
     steps:
-    - name: Check out code
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Setup NodeJS
@@ -24,3 +23,24 @@ jobs:
       run: |
         npm ci
         npx webpack
+
+    - name: Upload generated files as artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/
+
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
